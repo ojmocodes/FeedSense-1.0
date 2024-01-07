@@ -37,11 +37,10 @@ def handle_userinput(user_question, now, chat):
     #return completion.content
 
     choose_route = chat(
-        messages = [
+        messages = [SystemMessage(content = "You are a helpful assistant that chooses an appropriate folder name. The correct date format for you to always use is day_month_year. NEVER respond with anything other than the folder name in your response"),
         HumanMessage(
             content=f"""
-            The correct date format for you to always use is day_month_year.
-            Given: {user_question} and {now}, respond, without any other text, with the most accurate of ONE OF THESE TITLES, not including the "" marks:
+            Given: {user_question} and that the current date is "{now}", respond, without any other text, with the most accurate of ONE OF THESE folder names, not including the "" marks:
             "Farm_info_from_25_12_2024_to_01_01_2024"
             "Farm_info_from_18_12_2023_to_25_12_2023"
             "Farm_info_from_11_12_2023_to_18_12_2023"
