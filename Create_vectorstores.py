@@ -70,5 +70,7 @@ def create_vectorstore(text_chunks):
 def save_vectorstore_locally(vectorstore, desired_name):
     vectorstore.save_local(f"{desired_name}")
 
-def load_vectorstore_fromlocal(vectorstore):
-    
+def load_vectorstore_locally(vectorstore_name):
+    embeddings = OpenAIEmbeddings(openai_api_key = "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")
+    vectorstore = FAISS.load_local(f"{vectorstore_name}", embeddings)
+    return vectorstore
