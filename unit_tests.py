@@ -24,8 +24,8 @@ from createVectorStores import load_vectorstore_locally
 
 
 # problems
-# 1. The previous row's data is being similarity searched too -> need to fix this
-# 2. the "2 weeks ago" part of the question is only relevant to finding the vs, once actually nlping just want "this week"
+# 1. The previous row's data is being similarity searched too -> going to look into changing the chunking strategy, and do more unit tests with the retrieval
+# 2. the "2 weeks ago" part of the question is only relevant to finding the vs, once actually nlping just want "this week" -> change the completion message so it rephrases the question to current time, can do more nlp if needed too
 # 3. New vector stores are being created from running main, and being saved to vector store folder
 
 
@@ -45,7 +45,7 @@ def test_querying_vectorstore():
 
     new_db = FAISS.load_local("vectorStores/Farm_info_from_25_12_2024_to_01_01_2024", embeddings)
 
-    docs = new_db.similarity_search("What was the average growth rate 2 weeks ago?", k=3)
+    docs = new_db.similarity_search("What was the average growth rate this week?", k=3)
     return docs[0].page_content
 
 
