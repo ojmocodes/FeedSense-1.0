@@ -6,6 +6,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
+from langchain.schema import HumanMessage, SystemMessage
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
@@ -15,119 +16,81 @@ from langchain.document_loaders import (PyPDFLoader, DataFrameLoader, GitLoader)
 import pandas as pd
 import os
 import tempfile
+from datetime import datetime
+from createVectorStores import load_vectorstore_locally
 
-#hey does this work
-
-
+now = datetime.now()
+# print("Current date and time:", now) -> Current date and time: 2024-01-04 15:53:11.348154
 
 # OpenAI info (global), not needed curently because I am explicity giving in params
 OPEN_API_KEY = "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"
 openai_api_key = OPEN_API_KEY
+chat = ChatOpenAI(temperature=0, openai_api_key=OPEN_API_KEY)
+
+vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/vectorStores"
 
 
-# this is the function which I have customised the most so
-# there is a high chance it is the source of potential issues
-# it is intended to loop over various inputted csv's and return text
-# from all of them combined, and problems will prob arise from doc/text distincition
-def get_csv_text(csv_docs):
-    all_csv_text = ""
-    for csv_file in csv_docs:
-    # loops over all csvs and returns text
+def handle_userinput(user_question, now, chat):
+    # route to relevant db
+    # get all results
+    # feed them into completion
+    #return completion.content
 
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(csv_file.getvalue())
-            tmp_file_path = tmp_file.name
+    choose_route = chat(
+        messages = [
+        HumanMessage(
+            content=f"""
+            The correct date format for you to always use is day_month_year.
+            Given: {user_question} and {now}, respond, without any other text, with the most accurate of ONE OF THESE TITLES, not including the "" marks:
+            "Farm_info_from_25_12_2024_to_01_01_2024"
+            "Farm_info_from_18_12_2023_to_25_12_2023"
+            "Farm_info_from_11_12_2023_to_18_12_2023"
+            "Farm_info_from_04_12_2023_to_11_12_2023"
+            "general_nutrition_info"
+            """
+        ),
+    ] 
+    )
+    route_choice = choose_route.content
 
-        csvLoader = CSVLoader(file_path=tmp_file_path, encoding="utf-8")
-        csvdoc = csvLoader.load()
-        for document in csvdoc:
-            csvdoc_content = document.page_content
-            all_csv_text += csvdoc_content
-    return all_csv_text
+    relevant_vector_store = load_vectorstore_locally(route_choice, vector_stores_folder_path)
+    result = relevant_vector_store.similarity_search(user_question, k=1)[0].page_content
+
+    # here want to get "result" by similarity searching  the route_choice, and then pass that into completion, as part of this the vector store needs to be loaded with the load_vectorstore_locally function in Create_vectorstores
 
 
-# Alejandro's function that iterates over pdf's and returns the text of them all
-def get_pdf_text(pdf_docs):
-    all_pdf_text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            all_pdf_text += page.extract_text()
-    return all_pdf_text
-
-# Alejandro's function that creates chunks from a block of text
-def get_text_chunks(text):
-
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=100,
-        chunk_overlap=20,
-        length_function=len
+    completion = chat(
+        messages = [
+        SystemMessage(
+            content=f"You are a helpful farming assistant. Take a deep breath, work step by step. Don't say 'According to the information provided...' or anything similar. Reply with full context, including assumptions, what figures mean, etc."
+        ),
+        HumanMessage(
+            content=f"Use this information: '{result}' to answer the question: {user_question}. Answer Concisely."
+        ),
+    ]
     )
 
-    recursive_text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=100,
-        chunk_overlap=20,
-    )
-
-    chunks = text_splitter.split_text(text)
-    return chunks
+    FINAL = completion.content
+    return FINAL
 
 
-# Alejandro's function that does text embedding
-def get_vectorstore_pdf(text_chunks):
-    embeddings = OpenAIEmbeddings(openai_api_key = "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")
-    # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
+    # legacy code that may be useful soon for having a chat history (allows follow ups)
 
-# The same as Alejandro's function for chunk embedding, but
-# I have seperated because might want to change to FAISS.from_documents or something
-def get_vectorstore_csv(text_chunks):
-    embeddings = OpenAIEmbeddings(openai_api_key = "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")
-    # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
+    #response = st.session_state.conversation({'question': FINAL})
+    #st.session_state.chat_history = response['chat_history']
 
-# Standard Alejandro function
-def get_conversation_chain(csv_vectorstore, pdf_vectorstore):
-    llm = ChatOpenAI(openai_api_key = "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")
-    # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
-
-    pdf_vectorstore.merge_from(csv_vectorstore)
-    pdf_vectorstore.docstore
-
-    memory = ConversationBufferMemory(
-        memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=pdf_vectorstore.as_retriever(),
-        memory=memory
-    )
-    return conversation_chain
-
-# Standard Alejandro function
-def handle_userinput(user_question):
-    response = st.session_state.conversation({'question': user_question})
-    st.session_state.chat_history = response['chat_history']
-
-    for i, message in enumerate(st.session_state.chat_history):
-        if i % 2 == 0:
-            st.write(user_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
-        else:
-            st.write(bot_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
-
-
-# This function sets up the env, and works with streamlit to get documents
-# it then executes the get text, get chunks, embedding, and merging functions
-# It then initiates a conversation chain from the final vector store
+    #for i, message in enumerate(st.session_state.chat_history):
+    #    if i % 2 == 0:
+    #        st.write(user_template.replace(
+    #            "{{MSG}}", message.content), unsafe_allow_html=True)
+    #    else:
+    #        st.write(bot_template.replace(
+    #            "{{MSG}}", message.content), unsafe_allow_html=True)
 
 def main():
 
     load_dotenv()
-    st.set_page_config(page_title="Chat with multiple PDFs",
+    st.set_page_config(page_title="Chat with FeedSense - your digital farming brain",
                        page_icon=":books:")
     st.write(css, unsafe_allow_html=True)
 
@@ -136,73 +99,16 @@ def main():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
-    st.header("Chat with multiple PDFs :books:")
-    user_question = st.text_input("Ask a question about your documents:")
-    if user_question:
-        handle_userinput(user_question)
+    st.header("Chat with FeedSense!")
 
-    with st.sidebar:
-        st.subheader("Your documents (pdf)")
-        pdf_docs = st.file_uploader(
-            "Upload your PDFs here and click on 'Process PDF's'", accept_multiple_files=True)
+    user_question = st.text_input("Ask a question!:")
 
-        st.subheader("Your documents (csv)")
-        csv_docs = st.file_uploader(
-            "Upload your CSVs here and click on 'Process CSV's'", accept_multiple_files=True)
+    if st.button("Process"):
+        # Call the function to process the input
+        processed_input = handle_userinput(user_question, now=now, chat=chat)
 
-        if st.button("Process PDF's"):
-            with st.spinner("Processing"):
-
-                # get text chunks
-                pdf_raw_text = get_pdf_text(pdf_docs)
-
-                # get the text chunks
-                pdf_text_chunks = get_text_chunks(pdf_raw_text)
-
-                # create vector store
-                pdf_vectorstore = get_vectorstore_pdf(pdf_text_chunks)
-
-        if st.button("Process CSV's"):
-            with st.spinner("Processing"):
-                # get text chunks
-                csv_raw_text = get_csv_text(csv_docs)
-
-                # get the text chunks
-                csv_text_chunks = get_text_chunks(csv_raw_text)
-
-                # create vector store
-                csv_vectorstore = get_vectorstore_csv(csv_text_chunks)
-
-        if st.button("Done, lets go!"):
-            with st.spinner("Processing"):
-                # get text chunks
-                csv_raw_text = get_csv_text(csv_docs)
-
-                # get the text chunks
-                csv_text_chunks = get_text_chunks(csv_raw_text)
-
-                # create vector store
-                csv_vectorstore = get_vectorstore_csv(csv_text_chunks)
-                csv_vectorstore.docstore._dict
-
-                # get text chunks
-                pdf_raw_text = get_pdf_text(pdf_docs)
-
-                # get the text chunks
-                pdf_text_chunks = get_text_chunks(pdf_raw_text)
-
-                # create vector store
-                pdf_vectorstore = get_vectorstore_pdf(pdf_text_chunks)
-                pdf_vectorstore.docstore._dict
-
-                #merging and creating final vector store
-                #final_vectorstore = merge_vector_stores(pdf_vectorstore, csv_vectorstore)
-                #final_vectorstore = pdf_vectorstore.merge_from(csv_vectorstore)
-
-                # create conversation chain
-                #st.session_state.conversation = get_conversation_chain(final_vectorstore)
-                st.session_state.conversation = get_conversation_chain(csv_vectorstore, pdf_vectorstore)
-
+        # Display the processed input
+        st.success(f"{processed_input}")
 
 
 if __name__ == '__main__':
