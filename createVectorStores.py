@@ -17,6 +17,7 @@ import pandas as pd
 import os
 import tempfile
 from datetime import datetime
+from langchain.text_splitter import SpacyTextSplitter
 
 
 
@@ -26,11 +27,13 @@ data_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/csvData"
 
 
 list_of_file_names = [
-    "general_nutrition_info.csv", "Farm_info_from_25-12-2024_to_01-01-2024.csv",
-    "Farm_info_from_18-12-2023_to_25-12-2023.csv",
-    "Farm_info_from_11-12-2023_to_18-12-2023.csv",
-    "Farm_info_from_04-12-2023_to_11-12-2023.csv"
+    "general_nutrition_info.csv", "Farm_info_from_25_12_2023_to_01_01_2024.csv",
+    "Farm_info_from_18_12_2023_to_25_12_2023.csv",
+    "Farm_info_from_11_12_2023_to_18_12_2023.csv",
+    "Farm_info_from_04_12_2023_to_11_12_2023.csv"
 ]
+
+da_da = ["general_nutrition_info.csv"]
 
 class a_csv_doc():
     def __init__(self, file_name, file_path):
@@ -63,17 +66,19 @@ def get_text_chunks(text):
 
     text_splitter = CharacterTextSplitter(
         separator="\n",
-        chunk_size=100,
-        chunk_overlap=20,
+        chunk_size=200,
+        chunk_overlap=50,
         length_function=len
     )
+
+    spacy_splitter = SpacyTextSplitter(chunk_size=1000)
 
     recursive_text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=100,
         chunk_overlap=20,
     )
 
-    text_chunks = text_splitter.split_text(text)
+    text_chunks = spacy_splitter.split_text(text)
     return text_chunks
 
 #can do .from_documents too
@@ -93,3 +98,4 @@ def load_vectorstore_locally(vectorstore_name, vector_stores_folder_path):
 
 # running the final pipeline
 csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path)
+csv_to_vectorstore_pipeline(da_da, data_folder_path)

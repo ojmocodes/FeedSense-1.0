@@ -25,7 +25,7 @@ from createVectorStores import load_vectorstore_locally
 
 # problems
 # 1. The previous row's data is being similarity searched too -> going to look into changing the chunking strategy, and do more unit tests with the retrieval
-# 2. the "2 weeks ago" part of the question is only relevant to finding the vs, once actually nlping just want "this week" -> change the completion message so it rephrases the question to current time, can do more nlp if needed too
+# 2. the "2 weeks ago" part of the question is only relevant to finding the vs, once actually nlping just want "this week" -> do more nlp to rephrase the question
 # 3. New vector stores are being created from running main, and being saved to vector store folder
 
 

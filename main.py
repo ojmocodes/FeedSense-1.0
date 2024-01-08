@@ -37,34 +37,51 @@ def handle_userinput(user_question, now, chat):
     #return completion.content
 
     choose_route = chat(
-        messages = [SystemMessage(content = "You are a helpful assistant that chooses an appropriate folder name. The correct date format for you to always use is day_month_year. NEVER respond with anything other than the folder name in your response"),
+        messages = [SystemMessage(content = "You are a helpful assistant that chooses an appropriate folder name. The correct date format for you to always use is day_month_year. NEVER respond with anything other than the folder name in your response. If you're given a specific day, pick the week range that includes that date."),
         HumanMessage(
             content=f"""
-            Given: {user_question} and that the current date is "{now}", respond, without any other text, with the most accurate of ONE OF THESE folder names, not including the "" marks:
-            "Farm_info_from_25_12_2024_to_01_01_2024"
-            "Farm_info_from_18_12_2023_to_25_12_2023"
-            "Farm_info_from_11_12_2023_to_18_12_2023"
-            "Farm_info_from_04_12_2023_to_11_12_2023"
-            "general_nutrition_info"
+            Given: {user_question} and that the current date is "{now}", respond, without any other text, with the most relevant of ONE OF THESE folder names, make sure to only reply with the name, nothing else:
+            Farm_info_from_25_12_2023_to_01_01_2024
+            Farm_info_from_18_12_2023_to_25_12_2023
+            Farm_info_from_11_12_2023_to_18_12_2023
+            Farm_info_from_04_12_2023_to_11_12_2023
+            general_nutrition_info
+
+
             """
         ),
     ] 
     )
     route_choice = choose_route.content
 
-    relevant_vector_store = load_vectorstore_locally(route_choice, vector_stores_folder_path)
-    result = relevant_vector_store.similarity_search(user_question, k=1)[0].page_content
+    # here am rephrasing the q into present tense (only want "2 weeks ago" when routing)
 
-    # here want to get "result" by similarity searching  the route_choice, and then pass that into completion, as part of this the vector store needs to be loaded with the load_vectorstore_locally function in Create_vectorstores
+    rephrase_q = chat(
+        messages = [SystemMessage(content = "You are a helpful assistant that rephrases question into present tense."),
+        HumanMessage(
+            content=f"""
+            Transform this question: "{user_question}" into the exact same question but rephrased into the present tense.
+            For example: turn "...two weeks ago?" into "...this week?"
+            """
+        ),
+    ] 
+    )
+    q_as_present_tense = rephrase_q.content
+
+
+
+    relevant_vector_store = load_vectorstore_locally(route_choice, vector_stores_folder_path)
+    result = relevant_vector_store.similarity_search(q_as_present_tense, k=3)[0].page_content
+
 
 
     completion = chat(
         messages = [
         SystemMessage(
-            content=f"You are a helpful farming assistant. Take a deep breath, work step by step. Don't say 'According to the information provided...' or anything similar. Reply with full context, including assumptions, what figures mean, etc."
+            content=f"You are a helpful farming assistant. Take a deep breath, work step by step. Don't say 'According to the information provided...' or anything similar. Reply with full context, including assumptions, what figures mean, etc. Be polite and kind."
         ),
         HumanMessage(
-            content=f"Use this information: '{result}' to answer the question: {user_question}. Answer Concisely."
+            content=f"Use this information: '{result}' to answer the question: {q_as_present_tense}."
         ),
     ]
     )

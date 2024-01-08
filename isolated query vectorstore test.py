@@ -19,15 +19,29 @@ import tempfile
 from datetime import datetime
 from createVectorStores import load_vectorstore_locally
 
+OPEN_API_KEY = "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"
+openai_api_key = OPEN_API_KEY
+chat = ChatOpenAI(temperature=0, openai_api_key=OPEN_API_KEY)
+
 def test_querying_vectorstore():
     # route_choice = vectorstore_name
-    print("running")
     vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/vectorStores"
-    route_choice = "Farm_info_from_25_12_2024_to_01_01_2024"
-    user_question = "What was the average growth rate this week?"
+    route_choice = "Farm_info_from_11_12_2023_to_18_12_2023"
+    user_question = "What is my protein to fat ratio currently?"
 
     relevant_vector_store = load_vectorstore_locally(route_choice, vector_stores_folder_path)
     result = relevant_vector_store.similarity_search(user_question, k=3)[0].page_content
     return result
+
+rephrase_q = chat(
+        messages = [SystemMessage(content = "You are a helpful assistant that rephrases question into present tense."),
+        HumanMessage(
+            content=f"""
+            Transform this question: "{"What was my protein to fat ratio 3 weeks ago?"}" into the exact same question but rephrased into the present tense.
+            For example: turn "...two weeks ago?" into "...this week?"
+            """
+        ),
+    ] 
+    )
 
 print(test_querying_vectorstore())
