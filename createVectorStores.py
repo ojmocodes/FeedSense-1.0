@@ -60,12 +60,9 @@ def csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path):
         vectorstore = create_vectorstore(text_chunks)
         save_vectorstore_locally(vectorstore, file_name_for_vectorstore, vector_stores_folder_path)
 
-
-# this is only for one csv, but when needed (all owl farm csv's are in data folder) can create a function that loops
 def get_csv_text(the_csv_doc):
     loader = CSVLoader(file_path=the_csv_doc.file_path)
-    loaded_csvdoc = loader.load()
-
+    #asd loaded_csvdoc = loader.load() testing something so taking this away
     all_csv_text = []
     for document in loaded_csvdoc:
         loaded_csvdoc_content = document.page_content

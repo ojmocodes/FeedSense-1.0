@@ -3,16 +3,19 @@ from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceInstructEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.llms import HuggingFaceHub
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
-from langchain.llms import HuggingFaceHub
 from langchain.document_loaders.csv_loader import CSVLoader
-from langchain.document_loaders import (PyPDFLoader, DataFrameLoader, GitLoader)
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import DataFrameLoader
+from langchain_community.document_loaders import GitLoader
 import pandas as pd
 import os
 import tempfile
