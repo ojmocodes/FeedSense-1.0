@@ -216,11 +216,11 @@ def handle_userinput2(user_question, now, chat):
     completion = chat(
         messages = [
         SystemMessage(
-            content=f"You are a helpful farming assistant. Take a deep breath, if any arithemtic is needed, work step by step. Don't say 'According to the information provided...' or anything similar."
+            content=f"You are a helpful farming assistant. Take a deep breath. Don't say 'According to the information provided...' or anything similar."
         ),
         HumanMessage(
             content=f"""
-            Use this data: '{result}' to answer the question: {user_question}. The label for the data is titled 'col1: ' and the data point is titled 'col3:', where the data label is always to the left of the data point. All data is in the form col1: kg N applied / ha YTD col3:60. The label will always come first, on the left, and the data is on the right. Be polite and kind.
+            Use relevant data: '{result}' in the form "col1: kg N applied / ha YTD col3: 0" to answer the question: {user_question}. The label for the data is titled 'col1: ' and the data point is titled 'col3:', where the data label is always to the left of the data point. All data is in the form col1: kg N applied / ha YTD col3:60. The label will always come first, on the left, and the data is on the right. Be polite and kind.
             """
         ),
     ]
