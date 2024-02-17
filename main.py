@@ -20,7 +20,6 @@ import pandas as pd
 import os
 import tempfile
 from datetime import datetime
-from createVectorStores import load_vectorstore_locally, list_files_in_folder
 from datetime import datetime, timedelta
 
 now = datetime.now()
@@ -34,7 +33,6 @@ openai_api_key = OPEN_API_KEY
 chat = ChatOpenAI(temperature=0, openai_api_key=OPEN_API_KEY)
 
 vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores"
-list_of_file_names = list_files_in_folder("new_csvs")
 
 first = '''def handle_userinput(user_question, now, chat):
     # route to relevant db
@@ -109,6 +107,32 @@ first = '''def handle_userinput(user_question, now, chat):
     #        st.write(bot_template.replace(
     #            "{{MSG}}", message.content), unsafe_allow_html=True)
     '''
+
+def list_files_in_folder(folder_name):
+    # Get the current directory
+    current_directory = os.getcwd()
+
+    # Create the full path to the specified folder
+    folder_path = os.path.join(current_directory, folder_name)
+
+    # Check if the folder exists
+    if os.path.exists(folder_path) and os.path.isdir(folder_path):
+        # List all files in the folder
+        files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+        if ".DS_Store" in files:
+            files.remove(".DS_Store")
+        return files
+    else:
+        print(f"The folder '{folder_name}' does not exist.")
+        return []
+
+list_of_file_names = list_files_in_folder("new_csvs")
+
+def load_vectorstore_locally(vectorstore_name, vector_stores_folder_path):
+    embeddings = OpenAIEmbeddings(openai_api_key = "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")
+    st.success(f"heres")
+    vectorstore = FAISS.load_local(f"{vector_stores_folder_path}/{vectorstore_name}", embeddings)
+    return vectorstore
 
 def date_to_route(date, date_ranges=list_of_file_names):
     input_date = datetime.strptime(date, "%d_%m_%Y")

@@ -62,12 +62,13 @@ def csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path):
 
 def get_csv_text(the_csv_doc):
     loader = CSVLoader(file_path=the_csv_doc.file_path)
-    #asd loaded_csvdoc = loader.load() testing something so taking this away
-    all_csv_text = []
-    for document in loaded_csvdoc:
-        loaded_csvdoc_content = document.page_content
-        all_csv_text.append(loaded_csvdoc_content)
-    return ''.join(all_csv_text)
+    # testing something so taking this away
+    #asd loaded_csvdoc = loader.load()
+    #all_csv_text = []
+    #for document in loaded_csvdoc:
+    #    loaded_csvdoc_content = document.page_content
+    #    all_csv_text.append(loaded_csvdoc_content)
+    #return ''.join(all_csv_text)
 
 
 def get_text_chunks(text):
@@ -98,12 +99,6 @@ def create_vectorstore(text_chunks):
 
 def save_vectorstore_locally(vectorstore, desired_name, vector_stores_folder_path):
     vectorstore.save_local(f"{vector_stores_folder_path}/{desired_name}")
-
-def load_vectorstore_locally(vectorstore_name, vector_stores_folder_path):
-    embeddings = OpenAIEmbeddings(openai_api_key = "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")
-    st.success(f"heres")
-    vectorstore = FAISS.load_local(f"{vector_stores_folder_path}/{vectorstore_name}", embeddings)
-    return vectorstore
 
 # running the final pipeline
 folder_name = "new_csvs"
