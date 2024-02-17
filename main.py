@@ -33,7 +33,7 @@ openai_api_key = OPEN_API_KEY
 chat = ChatOpenAI(temperature=0, openai_api_key=OPEN_API_KEY)
 
 #vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newSecondCharSplitVectorStores"
-vector_stores_folder_path = "/SecondCharSplitVectorStores"
+vector_stores_folder_path = "FeedSense-1.0/SecondCharSplitVectorStores"
 
 first = '''def handle_userinput(user_question, now, chat):
     # route to relevant db
