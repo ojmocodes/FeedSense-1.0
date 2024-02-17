@@ -205,7 +205,7 @@ def handle_userinput2(user_question, now, chat):
     st.success(f"DEV NOTES: Date choice: {date_choice}")
     st.success(f"DEV NOTES: Route choice: {route_choice}")
     #relevant_vector_store = FAISS.load_local(f"/Users/olivermorris/Documents/GitHub/FeedSense-1.0/SecondCharSplitVectorStores/{route_choice}", embeddings)
-    relevant_vector_store = FAISS.load_local(f"/SecondCharSplitVectorStores/{route_choice}", embeddings)
+    relevant_vector_store = FAISS.load_local(f"FeedSense-1.0/SecondCharSplitVectorStores/{route_choice}", embeddings)
     result = relevant_vector_store.similarity_search(q_as_present_tense, k=3)[0].page_content
     st.success(f'DEV NOTES: Similarity search result: {result}')
 
