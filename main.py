@@ -219,7 +219,9 @@ def handle_userinput2(user_question, now, chat):
             content=f"You are a helpful farming assistant. Take a deep breath, if any arithemtic is needed, work step by step. Don't say 'According to the information provided...' or anything similar. All data is in the form kg N applied / ha YTD,60. As in the label is on the left, and the data is on the right, sepearted by a comma. Be polite and kind."
         ),
         HumanMessage(
-            content=f"Use this information: '{result}' to answer the question: {user_question}."
+            content=f"""
+            Use this data: '{result}' to answer the question: {user_question}. The label for the data is titled 'col1: ' and the data point is titled 'col3:', where the data label is always to the left of the data point.
+            """
         ),
     ]
     )
