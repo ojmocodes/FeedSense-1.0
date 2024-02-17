@@ -220,7 +220,7 @@ def handle_userinput2(user_question, now, chat):
         ),
         HumanMessage(
             content=f"""
-            Use relevant data: '{result}' to answer the question: {q_as_present_tense}. Be polite and kind.
+            Use relevant data: '{result}' to answer the question: {user_question}. Be kind, and try be as helpful as possible. The data is related to the relevant time period.
             """
         ),
     ]
