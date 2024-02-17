@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 langchain==0.1.7
 pandas==2.2.0
 PyPDF2==3.0.1
 python-dotenv==1.0.1
 streamlit==1.29.0
-=======
 dotenv
-langchain
-pandas
-os
 tempfile
 datetime
->>>>>>> bdf1a5a1ce222e782d2c36bb5b306b244296ac27
