@@ -209,14 +209,14 @@ def handle_userinput2(user_question, now, chat):
     folder_path = os.path.join(os.path.dirname(__file__), 'SecondCharSplitVectorStores')
     file_path = os.path.join(folder_path, route_choice)
     relevant_vector_store = FAISS.load_local(f"{file_path}", embeddings)
-    result = relevant_vector_store.similarity_search(q_as_present_tense, k=5)[0].page_content
+    result = relevant_vector_store.similarity_search(q_as_present_tense, k=3)[0].page_content
     st.success(f'DEV NOTES: Similarity search result: {result}')
 
 
     completion = chat(
         messages = [
         SystemMessage(
-            content=f"You are a helpful farming assistant. Take a deep breath, work step by step. Don't say 'According to the information provided...' or anything similar. All data is in the form kg N applied / ha YTD,60. As in the label is on the left, and the data is on the right, sepearted by a comma. Be polite and kind."
+            content=f"You are a helpful farming assistant. Take a deep breath, if any arithemtic is needed, work step by step. Don't say 'According to the information provided...' or anything similar. All data is in the form kg N applied / ha YTD,60. As in the label is on the left, and the data is on the right, sepearted by a comma. Be polite and kind."
         ),
         HumanMessage(
             content=f"Use this information: '{result}' to answer the question: {user_question}."
