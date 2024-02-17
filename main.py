@@ -206,7 +206,7 @@ def handle_userinput2(user_question, now, chat):
     st.success(f"DEV NOTES: Route choice: {route_choice}")
     #relevant_vector_store = FAISS.load_local(f"/Users/olivermorris/Documents/GitHub/FeedSense-1.0/SecondCharSplitVectorStores/{route_choice}", embeddings)
     #relevant_vector_store = FAISS.load_local(f"FeedSense-1.0/SecondCharSplitVectorStores/{route_choice}", embeddings)
-    folder_path = os.path.join(os.path.dirname(__file__), 'SecondCharSplitVectorStores')
+    folder_path = os.path.join(os.path.dirname(__file__), 'GPTCharSplitVectorStores')
     file_path = os.path.join(folder_path, route_choice)
     relevant_vector_store = FAISS.load_local(f"{file_path}", embeddings)
     result = relevant_vector_store.similarity_search(q_as_present_tense, k=3)[0].page_content

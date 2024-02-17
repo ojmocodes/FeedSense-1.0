@@ -19,14 +19,25 @@ import tempfile
 from datetime import datetime
 from langchain.text_splitter import SpacyTextSplitter
 import new_csvs
+import re
+import csv
 
 #13_11_2023 is missing
 
 # folder paths for my local setup
 #vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores"
-vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/SecondCharSplitVectorStores"
+vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/GPTCharSplitVectorStores"
 data_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/new_csvs"
 
+def csv_to_text_chunks(csv_file):
+    text_chunks = []
+    with open(csv_file, 'r', newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            # Convert row to text chunk
+            text_chunk = ', '.join(row)
+            text_chunks.append(text_chunk)
+    return text_chunks
 
 def list_files_in_folder(folder_name):
     # Get the current directory
@@ -60,35 +71,46 @@ def csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path):
         vectorstore = create_vectorstore(text_chunks)
         save_vectorstore_locally(vectorstore, file_name_for_vectorstore, vector_stores_folder_path)
 
+def adapted_csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path):
+    for the_file_name in list_of_file_names:
+        file_name_for_vectorstore = the_file_name.rsplit(".")[0] # don't want file type in name
+        text_chunks = csv_to_text_chunks(f"{data_folder_path}/{the_file_name}")
+        vectorstore = create_vectorstore(text_chunks)
+        save_vectorstore_locally(vectorstore, file_name_for_vectorstore, vector_stores_folder_path)
+
 def get_csv_text(the_csv_doc):
     loader = CSVLoader(file_path=the_csv_doc.file_path)
-    # testing something so taking this away
-    #asd loaded_csvdoc = loader.load()
-    #all_csv_text = []
-    #for document in loaded_csvdoc:
-    #    loaded_csvdoc_content = document.page_content
-    #    all_csv_text.append(loaded_csvdoc_content)
-    #return ''.join(all_csv_text)
+    loaded_csvdoc = loader.load()
+    all_csv_text = []
+    for document in loaded_csvdoc:
+        loaded_csvdoc_content = document.page_content
+        all_csv_text.append(loaded_csvdoc_content)
+    return ''.join(all_csv_text)
 
 
 def get_text_chunks(text):
 
     text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=200,
-        chunk_overlap=50,
-        length_function=len
-    )
+    separator="\n",
+    chunk_size=100,
+    chunk_overlap=20,
+    length_function=len,
+    is_separator_regex=True,
+)
 
     spacy_splitter = SpacyTextSplitter(chunk_size=1000)
 
     recursive_text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=100,
-        chunk_overlap=20,
-    )
+    # Set a really small chunk size, just to show.
+    chunk_size=100,
+    chunk_overlap=20,
+    length_function=len,
+    is_separator_regex=False,
+)
 
     text_chunks = text_splitter.split_text(text)
     return text_chunks
+
 
 #can do .from_documents too
 def create_vectorstore(text_chunks):
@@ -103,4 +125,26 @@ def save_vectorstore_locally(vectorstore, desired_name, vector_stores_folder_pat
 # running the final pipeline
 folder_name = "new_csvs"
 list_of_file_names = list_files_in_folder(folder_name)
-csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path)
+adapted_csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path)
+
+#the_file_name = "01_01_2024.csv"
+#csv_as_doc = a_csv_doc(the_file_name, f"{data_folder_path}/{the_file_name}")
+#txt = get_csv_text(csv_as_doc)
+#print(txt)
+#chunks = get_text_chunks(txt)
+#print(chunks[0])
+#print(chunks[1])
+#print(chunks[2])
+
+# Example usage:
+#csv_file = f"{data_folder_path}/{the_file_name}"  # Replace 'example.csv' with the path to your CSV file
+#text_chunkss = csv_to_text_chunks(csv_file)
+#print(text_chunkss)
+
+#vs = create_vectorstore(text_chunkss)
+#save_vectorstore_locally(vs, "woopitydoo", "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/CharSplitVectorStores")
+#q="what is the average pasture cover"
+#embeddings = OpenAIEmbeddings(openai_api_key = "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")
+#relevant_vector_store = FAISS.load_local("/Users/olivermorris/Documents/GitHub/FeedSense-1.0/CharSplitVectorStores/woopitydoo", embeddings)
+#result = relevant_vector_store.similarity_search(q, k=3)[0].page_content
+#print(result)
