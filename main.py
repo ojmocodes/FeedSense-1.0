@@ -37,7 +37,7 @@ def handle_userinput(user_question, now, chat):
     #return completion.content
 
     choose_route = chat(
-        messages = [SystemMessage(content = "You are a helpful assistant that chooses an appropriate folder name. The correct date format for you to always use is day_month_year. NEVER respond with anything other than the folder name in your response. If you're given a specific day, pick the week range that includes that date."),
+        messages = [SystemMessage(content = "You are a helpful assistant that chooses an appropriate folder name. The correct date format for you to always use is day_month_year. NEVER respond with anything other than the folder name in your response. If you're given a date range, always respond with the most recent date."),
         HumanMessage(
             content=f"""
             Given: {user_question} and that the current date is "{now}", respond, without any other text, with the most relevant of ONE OF THESE folder names, make sure to only reply with the name, nothing else:
