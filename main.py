@@ -17,9 +17,12 @@ import pandas as pd
 import os
 import tempfile
 from datetime import datetime
-from createVectorStores import load_vectorstore_locally
+from createVectorStores import load_vectorstore_locally, list_files_in_folder
+from datetime import datetime, timedelta
 
 now = datetime.now()
+now = str(now).split()[0]
+now = f"{now[-2:]}_{now[-5:-3]}_{now[:4]}"
 # print("Current date and time:", now) -> Current date and time: 2024-01-04 15:53:11.348154
 
 # OpenAI info (global), not needed curently because I am explicity giving in params
@@ -27,10 +30,10 @@ OPEN_API_KEY = "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"
 openai_api_key = OPEN_API_KEY
 chat = ChatOpenAI(temperature=0, openai_api_key=OPEN_API_KEY)
 
-vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/vectorStores"
+vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores"
+list_of_file_names = list_files_in_folder("new_csvs")
 
-
-def handle_userinput(user_question, now, chat):
+first = '''def handle_userinput(user_question, now, chat):
     # route to relevant db
     # get all results
     # feed them into completion
@@ -102,6 +105,95 @@ def handle_userinput(user_question, now, chat):
     #    else:
     #        st.write(bot_template.replace(
     #            "{{MSG}}", message.content), unsafe_allow_html=True)
+    '''
+
+def date_to_route(date, date_ranges=list_of_file_names):
+    input_date = datetime.strptime(date, "%d_%m_%Y")
+
+    for range in date_ranges:
+        range = range.split(".")[0]
+        end_of_week = datetime.strptime(range, "%d_%m_%Y")
+        start_of_week = end_of_week - timedelta(days=6)
+
+        if start_of_week <= input_date <= end_of_week:
+            print(start_of_week)
+            print(end_of_week)
+            return range
+    return None
+
+def handle_userinput2(user_question, now, chat):
+    # route to relevant db
+    # get all results
+    # feed them into completion
+    # return completion.content
+
+    # how route to relevant db?
+
+    # query_to_date() - take in {now} and {user_question}, output -> relevant date in the form XX_YY_ZZZZ - here the focus is prompt engineering to get reliable output formatting
+
+    query_to_date = chat(
+        messages = [
+            SystemMessage(content=
+                          
+            """
+            ALWAYS RESPOND IN THE FORMAT: DAY_MONTH_YEAR. You are a helpful assistant that returns the date relevant to the question. Always return in the same format of XX_YY_ZZZZ.
+            For example if the current date is 15_02_2024 and the question is asking about 12 weeks ago, return 06_11_2023
+            For example if the current date is 17_02_2024 and the question is reffering to last July, return 17_07_2024
+            """),
+            
+            HumanMessage(content=f"""
+                         
+            Given: The question "{user_question}" and that the current date is "{now}", respond, without any other text, the date relevant to the question. ALWAYS RESPOND IN THE FORMAT: DAY_MONTH_YEAR.
+
+            """
+        ),
+    ] 
+    )
+    date_choice = query_to_date.content
+    
+    # here am rephrasing the q into present tense (only want "2 weeks ago" when routing)
+
+    rephrase_q = chat(
+        messages = [SystemMessage(content = "You are a helpful assistant that rephrases question into present tense."),
+        HumanMessage(
+            content=f"""
+            Transform this question: "{user_question}" into the exact same question but rephrased into the present tense.
+            For example: turn "...two weeks ago?" into "...this week?"
+            """
+        ),
+    ] 
+    )
+    q_as_present_tense = rephrase_q.content
+
+    # need to create some python function that goes from date_choice to route_choice, in practice this means going from specific date to choosing a range
+
+    print(date_choice)
+    route_choice = date_to_route(date_choice)
+
+    #relevant_vector_store = load_vectorstore_locally(route_choice, "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores")
+    #result = relevant_vector_store.similarity_search(q_as_present_tense, k=3)[0].page_content
+
+    embeddings = OpenAIEmbeddings(openai_api_key = "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")
+    st.success(f"DEV NOTES: Date choice: {date_choice}")
+    st.success(f"DEV NOTES: Route choice: {route_choice}")
+    relevant_vector_store = FAISS.load_local(f"/Users/olivermorris/Documents/GitHub/FeedSense-1.0/SecondCharSplitVectorStores/{route_choice}", embeddings)
+    result = relevant_vector_store.similarity_search(q_as_present_tense, k=3)[0].page_content
+    st.success(f'DEV NOTES: Similarity search result: {result}')
+
+
+    completion = chat(
+        messages = [
+        SystemMessage(
+            content=f"You are a helpful farming assistant. Take a deep breath, work step by step. Don't say 'According to the information provided...' or anything similar. All data is in the form kg N applied / ha YTD,60. As in the label is on the left, and the data is on the right, sepearted by a comma. Be polite and kind."
+        ),
+        HumanMessage(
+            content=f"Use this information: '{result}' to answer the question: {user_question}."
+        ),
+    ]
+    )
+
+    FINAL = completion.content
+    return FINAL
 
 def main():
 
@@ -121,7 +213,7 @@ def main():
 
     if st.button("Process"):
         # Call the function to process the input
-        processed_input = handle_userinput(user_question, now=now, chat=chat)
+        processed_input = handle_userinput2(user_question, now=now, chat=chat)
 
         # Display the processed input
         st.success(f"{processed_input}")

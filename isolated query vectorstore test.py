@@ -25,7 +25,7 @@ chat = ChatOpenAI(temperature=0, openai_api_key=OPEN_API_KEY)
 
 def test_querying_vectorstore():
     # route_choice = vectorstore_name
-    vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/vectorStores"
+    vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores"
     route_choice = "Farm_info_from_11_12_2023_to_18_12_2023"
     user_question = "What is my protein to fat ratio currently?"
 

@@ -18,22 +18,33 @@ import os
 import tempfile
 from datetime import datetime
 from langchain.text_splitter import SpacyTextSplitter
+import new_csvs
 
-
+#13_11_2023 is missing
 
 # folder paths for my local setup
-vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/vectorStores"
-data_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/csvData"
+#vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores"
+vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/SecondCharSplitVectorStores"
+data_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/new_csvs"
 
 
-list_of_file_names = [
-    "general_nutrition_info.csv", "Farm_info_from_25_12_2023_to_01_01_2024.csv",
-    "Farm_info_from_18_12_2023_to_25_12_2023.csv",
-    "Farm_info_from_11_12_2023_to_18_12_2023.csv",
-    "Farm_info_from_04_12_2023_to_11_12_2023.csv"
-]
+def list_files_in_folder(folder_name):
+    # Get the current directory
+    current_directory = os.getcwd()
 
-da_da = ["general_nutrition_info.csv"]
+    # Create the full path to the specified folder
+    folder_path = os.path.join(current_directory, folder_name)
+
+    # Check if the folder exists
+    if os.path.exists(folder_path) and os.path.isdir(folder_path):
+        # List all files in the folder
+        files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+        if ".DS_Store" in files:
+            files.remove(".DS_Store")
+        return files
+    else:
+        print(f"The folder '{folder_name}' does not exist.")
+        return []
 
 class a_csv_doc():
     def __init__(self, file_name, file_path):
@@ -78,7 +89,7 @@ def get_text_chunks(text):
         chunk_overlap=20,
     )
 
-    text_chunks = spacy_splitter.split_text(text)
+    text_chunks = text_splitter.split_text(text)
     return text_chunks
 
 #can do .from_documents too
@@ -93,9 +104,11 @@ def save_vectorstore_locally(vectorstore, desired_name, vector_stores_folder_pat
 
 def load_vectorstore_locally(vectorstore_name, vector_stores_folder_path):
     embeddings = OpenAIEmbeddings(openai_api_key = "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")
+    st.success(f"heres")
     vectorstore = FAISS.load_local(f"{vector_stores_folder_path}/{vectorstore_name}", embeddings)
     return vectorstore
 
 # running the final pipeline
+folder_name = "new_csvs"
+list_of_file_names = list_files_in_folder(folder_name)
 csv_to_vectorstore_pipeline(list_of_file_names, data_folder_path)
-csv_to_vectorstore_pipeline(da_da, data_folder_path)
