@@ -1,7 +1,5 @@
-dotenv
-langchain
-pandas
-os
-tempfile
-datetime
-datetime
+langchain==0.1.7
+pandas==2.2.0
+PyPDF2==3.0.1
+python-dotenv==1.0.1
+streamlit==1.29.0

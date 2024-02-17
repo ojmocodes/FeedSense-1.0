@@ -1,0 +1,7 @@
+dotenv
+langchain
+pandas
+os
+tempfile
+datetime
+datetime
