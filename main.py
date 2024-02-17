@@ -243,7 +243,7 @@ def main():
 
     st.header("Chat with FeedSense!")
 
-    user_question = st.text_input("Ask a question!:")
+    user_question = st.text_input("Ask a question about Owl Farm data from 01-05-2023 to 22-01-2024.")
 
     if st.button("Process"):
         # Call the function to process the input
