@@ -6,3 +6,4 @@ datetime
 langchain-community
 openai
 faiss-cpu
+langchain-openai
