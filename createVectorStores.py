@@ -9,8 +9,6 @@ import tempfile
 from datetime import datetime
 import csv
 
-#13_11_2023 is missing
-
 # folder paths for my local setup
 #vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/newVectorStores"
 vector_stores_folder_path = "/Users/olivermorris/Documents/GitHub/FeedSense-1.0/GPTCharSplitVectorStores"

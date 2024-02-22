@@ -81,11 +81,15 @@ def handle_userinput2(user_question, now, chat):
     
     # here am rephrasing the q into present tense for similarity search and presentation
     rephrase_q = chat(
-        messages = [SystemMessage(content = "You are a helpful assistant that rephrases question into present tense."),
+        messages = [SystemMessage(content = "You are a helpful assistant that rephrases question into present tense, and proper acronyms."),
         HumanMessage(
             content=f"""
             Transform this question: "{user_question}" into the exact same question but rephrased into the present tense.
             For example: turn "...two weeks ago?" into "...this week?"
+
+            please rephrase "palm kernel" into "PKE"
+
+
             """
         ),
     ] 
@@ -98,7 +102,7 @@ def handle_userinput2(user_question, now, chat):
     st.success(f"DEV NOTES: Route choice: {route_choice}")
 
     # these blocks here are the magic
-
+    
     folder_path = os.path.join(os.path.dirname(__file__), 'GPTCharSplitVectorStores')
     file_path = os.path.join(folder_path, route_choice)
     relevant_vector_store = FAISS.load_local(f"{file_path}", embeddings)
@@ -113,7 +117,7 @@ def handle_userinput2(user_question, now, chat):
         ),
         HumanMessage(
             content=f"""
-            Use relevant data: '{result}' to answer the question: {user_question}. Be kind, and try be as helpful as possible. The data is related to the relevant time period.
+            Answer the question: {user_question} given the relevant data '{result}', this data is related to the time period. Be kind, and try be as helpful as possible. The data is related to the relevant time period.
             """
         ),
     ]
